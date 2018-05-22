@@ -123,7 +123,6 @@ class Web3Provider extends React.Component {
   }
 
   fetchAccountBalance(address) {
-    console.log("fetchAccountBalance", address);
     const { web3 } = window;
     web3 && web3.eth && web3.eth.getBalance(address, (err, balance) => {
       if (err) {
@@ -135,7 +134,6 @@ class Web3Provider extends React.Component {
   }
 
   setAccountBalance(balance) {
-    console.log("setAccountBalance", balance);
     this.appState.selectedAccountBalance = balance;
   }
 
