@@ -40,10 +40,17 @@ class Web3Provider extends React.Component {
       networkId: null,
       networkError: null
     };
+
+    if (!isEmpty(accounts)) {
+      this.fetchAccountBalance(accounts[0]);
+    }
+
     this.interval = null;
     this.networkInterval = null;
     this.fetchAccounts = this.fetchAccounts.bind(this);
     this.fetchNetwork = this.fetchNetwork.bind(this);
+    this.fetchAccountBalance = this.fetchAccountBalance.bind(this);
+    this.appState = props.appState;
 
     if (accounts) {
       this.handleAccounts(accounts, true);
@@ -51,13 +58,13 @@ class Web3Provider extends React.Component {
   }
 
   getChildContext() {
+    this.appState.accounts = this.state.accounts;
+    this.appState.selectedAccount = this.state.accounts && this.state.accounts[0];
+    this.network = getNetwork(this.state.networkId);
+    this.networkId = this.state.networkId;
+
     return {
-      web3: {
-        accounts: this.state.accounts,
-        selectedAccount: this.state.accounts && this.state.accounts[0],
-        network: getNetwork(this.state.networkId),
-        networkId: this.state.networkId
-      }
+      web3: this.appState
     };
   }
 
@@ -115,6 +122,23 @@ class Web3Provider extends React.Component {
     }
   }
 
+  fetchAccountBalance(address) {
+    console.log("fetchAccountBalance", address);
+    const { web3 } = window;
+    web3 && web3.eth && web3.eth.getBalance(address, (err, balance) => {
+      if (err) {
+        console.error(err);
+      } else {
+        this.setAccountBalance(web3.fromWei(balance.toNumber()));
+      }
+    });
+  }
+
+  setAccountBalance(balance) {
+    console.log("setAccountBalance", balance);
+    this.appState.selectedAccountBalance = balance;
+  }
+
   handleAccounts(accounts, isConstructor = false) {
     const { onChangeAccount } = this.props;
     const { store } = this.context;
@@ -129,18 +153,24 @@ class Web3Provider extends React.Component {
         accountsError: null,
         accounts: accounts
       });
-    }
 
-    if (didChange && !isConstructor) {
-      this.setState({
-        accountsError: null,
-        accounts
-      });
+      this.fetchAccountBalance(next);
     }
 
     // If provided, execute callback
-    if (didChange && typeof onChangeAccount === 'function') {
-      onChangeAccount(next);
+    if (didChange) {
+      if (!isConstructor) {
+        this.setState({
+          accountsError: null,
+          accounts
+        });
+
+        this.fetchAccountBalance(next);
+      }
+
+      if (typeof onChangeAccount === 'function') {
+        onChangeAccount(next);
+      }
     }
 
     // If available, dispatch redux action
@@ -156,7 +186,7 @@ class Web3Provider extends React.Component {
         store.dispatch({
           type: 'web3/CHANGE_ACCOUNT',
           address: next
-        })
+        });
       }
     }
   }
@@ -178,7 +208,7 @@ class Web3Provider extends React.Component {
           this.setState({
             networkError: null,
             networkId: netId
-          })
+          });
         }
       }
     });

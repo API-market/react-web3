@@ -21,7 +21,7 @@ function ErrorTemplate(props) {
         />
       </div>
     </div>
-  )
+  );
 }
 
 module.exports = ErrorTemplate;
