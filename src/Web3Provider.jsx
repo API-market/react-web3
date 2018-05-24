@@ -58,7 +58,7 @@ class Web3Provider extends React.Component {
   }
 
   getChildContext() {
-    this.appState.accounts = this.state.accounts;
+    //this.appState.accounts = this.state.accounts;
     this.appState.selectedAccount = this.state.accounts && this.state.accounts[0];
     this.network = getNetwork(this.state.networkId);
     this.networkId = this.state.networkId;
